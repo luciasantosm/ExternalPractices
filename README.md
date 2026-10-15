@@ -140,7 +140,7 @@ flowchart TD
 
 Original hand-drawn sketch (annotated in Spanish):
 
-![Hand-drawn workflow sketch](/pictures/workflow_qupath_spaceranger_segmentacion_custom.pngpictures/)
+![Hand-drawn workflow sketch](/pictures/workflow_qupath_spaceranger_segmentacion_custom.png/)
 
 The same workflow applies to the other tools: only step 7 (the segmentation) changes.
 
