@@ -74,7 +74,7 @@ spaceranger count \
 
 On the cluster it is launched through `sbatch` (`--wrap`), with 2 cores, 50 GB of memory and a 24 h time limit.
 
-### 3.2. CellViT++ - custom segmentation in Space Ranger
+### 3.2. [CellViT++](https://github.com/TIO-IKIM/CellViT) - custom segmentation in Space Ranger
 
 To test CellViT++ we used a Geojson that had already been generated, but it had to be processed to meet the input requirements of Space Ranger. The file must be a `FeatureCollection` made of **polygons**, whereas the CellViT++ mask was segmented as **points and multipoints**.
 
