@@ -27,11 +27,9 @@ The aim is to reach a **consensus on the best possible result**, taking into acc
 
 ## 3. Workflows
 
-### 3.1. Space Ranger
+### 3.1. [Space Ranger](https://www.10xgenomics.com/support/software/space-ranger/latest)
 
 The first segmentation tool tested was Space Ranger itself. It can be used in two ways: through the web interface or from the command line. Both achieve the same results, but the web interface takes less time than the command line.
-
-<!-- SpaceRanger: https://www.10xgenomics.com/support/software/space-ranger/latest -->
 
 Space Ranger only accepts the histology image if it is **pyramidal**. To get one, the original image is loaded in QuPath, which converts it to a pyramidal image when reading it. It is then exported to keep this format (*Export images → OME-TIFF*). This OME-TIFF is the image used both for the alignment and as the Space Ranger input.
 
