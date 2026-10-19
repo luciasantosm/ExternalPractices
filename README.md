@@ -84,7 +84,7 @@ The fix is to load the mask in QuPath and export it as objects in `FeatureCollec
 
 With this segmentation, metrics such as **UMIs in cells** decreased compared to the default Space Ranger segmentation, which uses StarDist as its segmentation engine.
 
-### 3.3. Cellpose
+### 3.3. [Cellpose](https://github.com/MouseLand/cellpose)
 
 <!-- TODO: complete with how the masks are converted to GeoJSON polygons -->
 
