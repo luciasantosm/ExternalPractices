@@ -114,7 +114,7 @@ Main steps:
 4. Prepare the data and optimize the spot-to-cell weights (this step can use the GPU through PyTorch; for this sample it also completed on CPU).
 5. Build the final cell × gene matrix with **all genes** (the optimization uses only genes with at least 1000 counts).
 
-### 3.5. StarDist extension in QuPath
+### 3.5. [StarDist extension in QuPath](https://github.com/qupath/qupath-extension-stardist)
 
 #### Diagram
 
