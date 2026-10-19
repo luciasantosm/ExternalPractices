@@ -6,7 +6,7 @@
 
 ---
 
-## 1. What is this internship about?
+## 1. What is this project about?
 
 During my internship I am evaluating different segmentation tools (and the way the image and annotations are prepared) with spatial transcriptomics data.
 
@@ -23,7 +23,7 @@ The aim is to reach a **consensus on the best possible result**, taking into acc
 | **Python scripts** (`crop-tissue.py`, `clean-geojson.py`) | Image cropping and GeoJSON cleaning |
 | **Cellpose** | Nuclei segmentation (tool under evaluation) |
 | **SMURF** | Cell soft segmentation (tool under evaluation) |
-| **CellViT++** | Nuclei segmentation (tool under evaluation) |
+| **CellViT++** | Nuclei segmentation |
 
 ## 3. Workflows
 
@@ -31,19 +31,19 @@ The aim is to reach a **consensus on the best possible result**, taking into acc
 
 The first segmentation tool tested was Space Ranger itself. It can be used in two ways: through the web interface or from the command line. Both achieve the same results, but the web interface takes less time than the command line.
 
-<!-- TODO: add the link to the web interface -->
+<!-- SpaceRanger: https://www.10xgenomics.com/support/software/space-ranger/latest -->
 
 Space Ranger only accepts the histology image if it is **pyramidal**. To get one, the original image is loaded in QuPath, which converts it to a pyramidal image when reading it. It is then exported to keep this format (*Export images → OME-TIFF*). This OME-TIFF is the image used both for the alignment and as the Space Ranger input.
 
 #### Web interface
 
-<!-- TODO: add the usage diagram -->
+![SpaceRanger cloud workflow](/pictures/workflow_SRcloud.png/)
 
-The inputs are the FASTQ files, the microscopy (histology) image and the CytAssist image. A new analysis is created and, under *advanced options*, the **maximum diameter is set to 1024 pixels**, because the tissue contains muscle cells, which are large. A `.json` file with the fiducial alignment between the CytAssist image and the original image is also added there; this alignment is done beforehand and manually in Loupe Browser.
+The inputs are the FASTQ files, the microscopy (histology) image and the CytAssist image. A new analysis is created and, under *advanced options*, the **maximum diameter is set to 1024 pixels**, because the tissue contains muscle cells, which are large. A `.json` file with the fiducial alignment between the CytAssist image and the original image is also added there, this is done before manually in Loupe Browser.
 
 #### Command line with `--custom-segmentation-file`
 
-<!-- TODO: add the usage diagram -->
+![SpaceRanger --custom-segmentation workflow](/pictures/workflow_SR.png/)
 
 This option lets you **expand a segmentation that was already generated with another tool**, and it returns the run metrics.
 
@@ -78,12 +78,11 @@ On the cluster it is launched through `sbatch` (`--wrap`), with 2 cores, 50 GB o
 
 ### 3.2. CellViT++ - custom segmentation in Space Ranger
 
-To test CellViT++ we used a GeoJSON that had already been generated, but it had to be processed to meet the input requirements of Space Ranger. The file must be a `FeatureCollection` made of **polygons**, whereas the CellViT++ mask was segmented as **points and multipoints**.
+To test CellViT++ we used a Geojson that had already been generated, but it had to be processed to meet the input requirements of Space Ranger. The file must be a `FeatureCollection` made of **polygons**, whereas the CellViT++ mask was segmented as **points and multipoints**.
 
 The fix is to load the mask in QuPath and export it as objects in `FeatureCollection` format. This `.geojson` is then cleaned with `clean-geojson.py`.
 
 <!-- TODO: add the link to clean-geojson.py -->
-<!-- TODO: add the usage diagram -->
 
 With this segmentation, metrics such as **UMIs in cells** decreased compared to the default Space Ranger segmentation, which uses StarDist as its segmentation engine.
 
