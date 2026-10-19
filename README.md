@@ -100,7 +100,7 @@ Notes:
 - With this image, Cellpose returned more than 65535 masks.
 - Executing right now
 
-### 3.4. SMURF
+### 3.4. [SMURF](https://github.com/The-Mitra-Lab/SMURF#smurf-full)
 
 <!-- TODO: add the usage diagram and links to the scripts -->
 
