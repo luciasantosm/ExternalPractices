@@ -1,0 +1,376 @@
+---
+title: "4th Week: 5 - 9 october "
+number-sections: false
+format: html
+engine: markdown
+---
+# Monday 05/10/2026
+
+::: {.callout-warning}
+Traceback (most recent call last):
+  File "/storage/scratch01/groups/ce/BLCA_Spatial/SMURF/smurf_part2.py", line 50, in <module>
+    spot_cell_dic = su.start_optimization(spots_X_dic, celltypes_dic, cells_X_plus_dic,
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/smurf/model.py", line 202, in start_optimization
+    A = torch.from_numpy(spots_X[cell_num].T).float().to(device)
+torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+::: 
+
+[cudaErrorDevicesUnavailable](https://docs.nvidia.com/cuda/cuda-runtime-api/cuda_runtime_api/group__CUDART__TYPES.html): 
+
+This indicates that all CUDA devices are busy or unavailable at the current time.
+
+Devices are often busy/unavailable due to use of cudaComputeModeProhibited, cudaComputeModeExclusiveProcess, or when long running CUDA kernels have filled up the GPU and are blocking new work from starting. They can also be unavailable due to memory constraints on a device that already has active CUDA work being performed.
+
+````{bash}
+cat log_test_smurf_part2.txt 
+cuda
+Group 0:
+````
+
+To check the status of the GPU, I ran the following script:
+
+````{bash}
+#!/bin/bash
+#SBATCH --job-name=test_smurf_part2
+#SBATCH --partition=gpu 
+#SBATCH --gres=gpu:A100:1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=100G
+#SBATCH --time=48:00:00
+#SBATCH --output=log_test_smurf_part2.txt
+#SBATCH --error=err_test_smurf_part2.txt
+
+source /home/lsantos/miniforge3/etc/profile.d/conda.sh
+
+conda activate smurf_cu126
+
+hostname
+echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
+nvidia-smi
+nvidia-smi -q -d COMPUTE | grep -i "compute mode"
+nvidia-smi --query-compute-apps=pid,used_memory --format=csv
+
+cd /storage/scratch01/groups/ce/BLCA_Spatial/SMURF
+
+python smurf_part2.py
+````
+
+Also I runned cellpose,following the same procedure as with smurf. I did sbatch of an .exe calling *Run_Cellpose.py*.
+
+````{bash}
+#!/bin/bash
+#SBATCH --job-name=test_cellpose
+#SBATCH --partition=gpu 
+#SBATCH --gres=gpu:A100:1
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=100G
+#SBATCH --time=48:00:00
+#SBATCH --output=log_test_cellpose.txt
+#SBATCH --error=err_test_cellpose.txt
+
+source /home/lsantos/miniforge3/etc/profile.d/conda.sh
+
+conda activate cellpose
+
+cd /storage/scratch01/groups/ce/BLCA_Spatial/CELLPOSE
+
+python Run_Cellpose.py
+````
+
+````{python}
+import numpy as np
+from cellpose import models, core, io, plot
+from pathlib import Path
+from tqdm import trange
+import matplotlib.pyplot as plt
+from natsort import natsorted
+
+io.logger_setup() # run this to get printing of progress
+
+#Check if colab notebook instance has GPU access
+if core.use_gpu()==False:
+  raise ImportError("No GPU access, change your runtime")
+
+model = models.CellposeModel(gpu=True)
+
+img = io.imread("/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean.tif")
+
+first_channel = '0' # @param ['None', 0, 1, 2, 3, 4, 5]
+second_channel = '1' # @param ['None', 0, 1, 2, 3, 4, 5]
+third_channel = '2' # @param ['None', 0, 1, 2, 3, 4, 5]
+
+selected_channels = []
+for i, c in enumerate([first_channel, second_channel, third_channel]):
+  if c == 'None':
+    continue
+  if int(c) > img.shape[-1]:
+    assert False, 'invalid channel index, must have index greater or equal to the number of channels'
+  if c != 'None':
+    selected_channels.append(int(c))
+
+img_selected_channels = np.zeros_like(img)
+img_selected_channels[:, :, :len(selected_channels)] = img[:, :, selected_channels]
+
+flow_threshold = 0.4
+cellprob_threshold = 0.0
+tile_norm_blocksize = 0
+
+masks, flows, styles = model.eval(img_selected_channels, batch_size=32, flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold,
+                                  normalize={"tile_norm_blocksize": tile_norm_blocksize})
+
+fig = plt.figure(figsize=(12,5))
+plot.show_segmentation(fig, img_selected_channels, masks, flows[0])
+plt.tight_layout()
+plt.savefig('segmentacion_cellpose.png', dpi=300, bbox_inches='tight')
+plt.show()
+````
+
+
+# Tuesday 06/10/2026
+
+````{bash}
+sbatch /storage/scratch01/groups/ce/BLCA_Spatial/CELLPOSE/cellpose_exe.sh
+````
+
+**cat err_test_cellpose.txt** 
+````{bash}
+Traceback (most recent call last):
+  File "/storage/scratch01/groups/ce/BLCA_Spatial/CELLPOSE/Run_Cellpose.py", line 14, in <module>
+    raise ImportError("No GPU access, change your runtime")
+ImportError: No GPU access, change your runtime
+````
+**cat log_test_cellpose.txt** 
+````{bash}
+creating new log file
+[GUI INFO] : WRITING LOG OUTPUT TO /home/lsantos/.cellpose/run.log
+
+cellpose version:       4.2.1.1 
+platform:               linux 
+python version:         3.12.14 
+torch version:          2.14.0+cu130
+2026-10-05 15:15:15,748 [io INFO] WRITING LOG OUTPUT TO /home/lsantos/.cellpose/run.log
+2026-10-05 15:15:15,749 [io INFO] 
+cellpose version:       4.2.1.1 
+platform:               linux 
+python version:         3.12.14 
+torch version:          2.14.0+cu130
+2026-10-05 15:15:15,848 [core INFO] Neither TORCH CUDA nor MPS version not installed/working.
+````
+
+````{bash}
+sbatch /storage/scratch01/groups/ce/BLCA_Spatial/SMURF/smurf_part2_exe.sh
+````
+
+**cat err_test_smurf_part2.txt** 
+````{bash}
+Traceback (most recent call last):
+  File "/storage/scratch01/groups/ce/BLCA_Spatial/SMURF/smurf_part2.py", line 50, in <module>
+    spot_cell_dic = su.start_optimization(spots_X_dic, celltypes_dic, cells_X_plus_dic,
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/smurf/model.py", line 202, in start_optimization
+    A = torch.from_numpy(spots_X[cell_num].T).float().to(device)
+torch.AcceleratorError: CUDA error: CUDA-capable device(s) is/are busy or unavailable
+Search for `cudaErrorDevicesUnavailable' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+````
+
+**cat log_test_smurf_part2.txt** 
+
+````{bash}
+gp001
+CUDA_VISIBLE_DEVICES=0
+Mon Oct  5 15:12:13 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.60.13    Driver Version: 525.60.13    CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100 80G...  On   | 00000000:01:00.0 Off |                    0 |
+| N/A   27C    P0    41W / 300W |      0MiB / 81920MiB |      0%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+    Compute Mode                          : Default
+pid, used_gpu_memory [MiB]
+cuda
+Group 0:
+````
+
+I reinstalled cuda 12.0, and submitted the sbatch again, for both, cellpose and smurf. 
+
+We had the meeting with Pablo and he is going to send us the paremeters used for the segmentation with StarDist, and his model (code) to run the annotation in QuPath. 
+
+The next day I have to generate all the json with the aligment between the original image and the cyassist. But the problem is that this json does not open in QuPath, so we have to think a way to convert it into a geojson, or generate another object as an empty geojson that has the exact coordinates of the tissue limits. Also, maybe we can cut the original image using the tissue coordinates, and send it to Pablo, so he can annotate it.
+
+# Wednesday 07/10/2026
+
+**cat err_test_smurf_part2.txt**
+````{bash} 
+100%|██████████| 13457/13457 [03:52<00:00, 57.85it/s] 
+Traceback (most recent call last):
+  File "/storage/scratch01/groups/ce/BLCA_Spatial/SMURF/smurf_part2.py", line 60, in <module>
+    su.plot_results(so_3_4.image_temp(), so_3_4.pixels_cells, dpi=600,
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/smurf/__helper__.py", line 1788, in plot_results
+    plot_pixels_cells(
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/smurf/__helper__.py", line 1603, in plot_pixels_cells
+    plt.savefig(save, dpi=dpi, bbox_inches="tight", pad_inches=0)
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/pyplot.py", line 1250, in savefig
+    res = fig.savefig(*args, **kwargs)  # type: ignore[func-returns-value]
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/figure.py", line 3497, in savefig
+    self.canvas.print_figure(fname, **kwargs)
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/backend_bases.py", line 2157, in print_figure
+    self.figure.draw(renderer)
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/artist.py", line 94, in draw_wrapper
+    result = draw(artist, renderer, *args, **kwargs)
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/artist.py", line 71, in draw_wrapper
+    return draw(artist, renderer)
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/figure.py", line 3264, in draw
+    mimage._draw_list_compositing_images(
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/image.py", line 134, in _draw_list_compositing_images
+    a.draw(renderer)
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/artist.py", line 71, in draw_wrapper
+    return draw(artist, renderer)
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/axes/_base.py", line 3226, in draw
+    mimage._draw_list_compositing_images(
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/image.py", line 158, in _draw_list_compositing_images
+    flush_images()
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/image.py", line 144, in flush_images
+    data, l, b = composite_images(image_group, renderer, mag)
+  File "/home/lsantos/miniforge3/envs/smurf_cu126/lib/python3.10/site-packages/matplotlib/image.py", line 110, in composite_images
+    _image.resample(data, output, trans, _image.NEAREST,
+ValueError: Input and output arrays have mismatched types
+````
+
+**cat log_test_smurf_part2.txt**
+````{bash} 
+Warning: CUDA was not detected. The SMURF-full workflow may be impractically slow on CPU. Use the SMURF-lite tutorial instead if a GPU is not available.
+Group 0:
+Epoch 1, Loss: 0.5724229216575623
+Stopping early at epoch 35 due to minimal loss improvement.
+Group 1:
+Epoch 1, Loss: 0.6741187572479248
+Stopping early at epoch 33 due to minimal loss improvement.
+````
+
+**cat err_test_cellpose.txt**
+````{bash} 
+Traceback (most recent call last):
+  File "/storage/scratch01/groups/ce/BLCA_Spatial/CELLPOSE/Run_Cellpose.py", line 14, in <module>
+    raise ImportError("No GPU access, change your runtime")
+ImportError: No GPU access, change your runtime
+````
+
+
+**cat log_test_cellpose.txt**
+````{bash} 
+[GUI INFO] : WRITING LOG OUTPUT TO /home/lsantos/.cellpose/run.log
+
+cellpose version:       4.2.1.1 
+platform:               linux 
+python version:         3.12.14 
+torch version:          2.5.1
+2026-10-06 17:44:08,344 [io INFO] WRITING LOG OUTPUT TO /home/lsantos/.cellpose/run.log
+2026-10-06 17:44:08,345 [io INFO] 
+cellpose version:       4.2.1.1 
+platform:               linux 
+python version:         3.12.14 
+torch version:          2.5.1
+2026-10-06 17:44:08,347 [core INFO] Neither TORCH CUDA nor MPS version not installed/working.
+````
+
+
+python -m pip install cellpose
+
+python -c "import torch; print(torch.__version__, torch.version.cuda)"
+
+````{python}
+import pandas as pd
+df = pd.read_parquet("~/CNIO/TMA_3_4/TMA_3_4_SRtest/outs/binned_outputs/square_002um/spatial/tissue_positions.parquet")
+````
+
+````{python}
+print(df.head())
+                 barcode  in_tissue  array_row  array_col  pxl_row_in_fullres  pxl_col_in_fullres
+0  s_002um_00000_00000-1          1          0          0         3066.294853         4608.409522
+1  s_002um_00000_00001-1          1          0          1         3070.297148         4608.425299
+2  s_002um_00000_00002-1          1          0          2         3074.299443         4608.441077
+3  s_002um_00000_00003-1          1          0          3         3078.301738         4608.456854
+4  s_002um_00000_00004-1          1          0          4         3082.304033         4608.472632
+````
+````{python}
+print(df.dtypes)
+barcode                   str
+in_tissue               uint8
+array_row              uint32
+array_col              uint32
+pxl_row_in_fullres    float64
+````
+
+````{python}
+import pandas as pd
+
+# Read the parquet file from SpaceRanger binned outputs
+df = pd.read_parquet("~/CNIO/TMA_3_4/TMA_3_4_SRtest/outs/binned_outputs/square_002um/spatial/tissue_positions.parquet")
+tissue_df = df[df['in_tissue']==1] #filter tissue coordinates
+
+#Extract x and y coordinates
+y = tissue_df["pxl_row_in_fullres"].values   
+x = tissue_df["pxl_col_in_fullres"].values   
+
+
+import tifffile as tiff
+
+image = tiff.imread("./TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean.tif")
+
+# Boundaries coordinates of the tissue 
+y0, y1 = int(y.min()), int(y.max()) 
+x0, x1 = int(x.min()), int(x.max())
+
+
+crop_image = image[y0:y1, x0:x1]
+
+tiff.imwrite("AL-7332_99B-15848-3D_3_97-47941S_4_clean_crop.tif", crop_image)
+
+````
+
+We tried to run SR again, but this time using the segmented geojson made by Pablo, to see if SR takes it as input. 
+
+````{bash}
+sbatch -o log_TMA_3_4_P.txt -e error_TMA_3_4_P.txt -J TMA_3_4_P -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_3_4_P --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/fastq_3_4 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/cytassist_image.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/H1-C692N9D-D1-fiducials-image-registration.json --create-bam=false --custom-segmentation-file=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_pablo.geojson --nucleus-expansion-distance-micron=8"
+````
+
+
+# Thursday 08/10/2026
+
+The SR failed because of the same problem we had with the other geojson, the MultiPolygon. Jaime sent me the script he used to clean it and I applied it to Pablo's geojson. The script is in the file *clean_geojson.py* and the output is *AL-7332_99B-15848-3D_3_97-47941S_4_pablo_clean.geojson*. With that, I resent the job: 
+
+````{bash}
+sbatch -o log_TMA_3_4_P.txt -e error_TMA_3_4_P.txt -J TMA_3_4_P -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_3_4_P --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/fastq_3_4 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/cytassist_image.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/H1-C692N9D-D1-fiducials-image-registration.json --create-bam=false --custom-segmentation-file=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_pablo_clean.geojson --nucleus-expansion-distance-micron=8"
+````
+
+Cellpose failed also, due to the lack of matplotlib, so I installed it and rerun the job. 
+
+Finally I checked if it is possible to do a .json alignment between the cropped image and the cyassist image, to run SR later when Pablo segment the image. It was possible so now I have to check if SR run okay with the cropped image and its json alignment, with no custom segmentation. 
+
+````{bash}
+sbatch -o log_TMA_3_4_crop_test.txt -e error_TMA_3_4_crop_test.txt -J TMA_3_4_crop_test -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_3_4_crop_test --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/fastq_3_4 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/cytassist_image.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean_crop.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/H1-C692N9D-D1-fiducials-crop-image-registration.json --create-bam=false"
+````
+
+I finished the crop_tissue script, just need to finish commenting it. 
+
+
+# Friday 09/10/2026
+
+The job with the image cropped worked fine. The metrics resulted the same. But at least we already know that there is no problem with SpaceRanger taking as input a cropped image. 
+
+*/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/TMA_3_4_crop_test/outs/web_summary.html*
+
+I submitted a new job of cellpose with more memory, 100G instead of 50G. 

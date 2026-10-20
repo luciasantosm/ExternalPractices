@@ -1,0 +1,18 @@
+project:
+  type: book
+
+book:
+  title: "Diario Prácticas"
+  author: "Lucía Santos Muñoz"
+  chapters:
+    - index.qmd
+    - semana_01.qmd
+    - semana_02.qmd
+    - semana_03.qmd
+    - semana_04.qmd 
+
+
+format:
+  html:
+    theme: cosmo
+    code-line-numbers: true

@@ -1,0 +1,72 @@
+---
+title: "Week: 14 to 18 of september"
+number-sections: false
+---
+
+# Wedenesday 16/09
+
+- CNIO mail created
+- Cluster usage request sent
+
+Note: Important data to look at in the web report from SpaceRanger is **Sequencing Saturation**. Its value should be 80-90% to consider good quality data. Also, **fraction of bins under tissue 8um**, should be 80-90%, not decreasing too much after segmentation process. 
+
+
+# Thursday 17/09 and Friday 18/09
+
+## Readind Cata Thesis
+
+The most highlatable information extracted from the thesis is the following:
+
+- **BLCA cells**: Epithelial-to-mesenchymal transition (EMT) losing urothelial diferentiation. Improve invasion. 
+- **SM cells**: myCAF features. 
+
+------------------------------------------
+
+- Upregulation of extracellular matrix (ECM) genes --> collagens
+
+- [Molecular + Mechanotransduction] pathways --> Integrated signaling network --> cells adapt to changes in tissue mechanics -[dysregulation]--> Pathological remodeling an Disease progression*
+
+
+Normal urothelium --> Init (Common process) --> 
+
+* Papillary Tumor (NI) - FGFR3
+* Non-Papillary Tumor (I) 
+
+## First analysis with SpaceRanger
+
+First started with 3_4 sample, because it is the sample used by the Pathologist to annotate the tissue. We run SpaceRanger in the web-interface, following the next steps: 
+
+1. Select library --> Visium
+
+2. Inputs: 
+- FASTQ files
+- Tissue image (H&E)
+- CytAssist image
+
+3. Create New Analysis
+
+4. Advanced Options:
+- Reference: human GRCh38-2024-A
+- Probe Set: human 2024 
+- json LoupeBrowser (alignment cytassist+H&E)
+
+5. Run Analysis
+
+Everyting was run with the _clean image.
+
+**Results 1**: Good in general, but the total UMIs in cells is very low, 44,3%. We have to increase the number, at least 80%. 
+
+Then, we repeated the analysis but this time modifying the parameter max.diameter instead of 256, 1024 pixels. And a third time with the cut image (only the good sample). 
+
+**Results 2 and 3**: Exactly the same UMIs %. 
+
+
+## Search Segmentation Tools 
+
+Searched other option for segmentation.
+
+* CellVit++
+* Bin2Cell == SapceRanger (StarDist)
+* Cellpose --> Jupyter Notebook Drive
+* SMURF --> Deep Learning (2nd step soft segmentation; increase UMI counts)
+

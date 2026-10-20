@@ -1,0 +1,124 @@
+---
+title: "5th Week: 12 - 16 october "
+number-sections: false
+format: html
+engine: markdown
+---
+
+# Tuesday 13/10/2026
+
+Pablo sent us the script for the segmentation in StarDist as a extension of QuPath. 
+I installed it with the menu of manage extensions. There, there are defined scripts depending on the image type you have. In our case, it is a H&E 3 channels, RGB. 
+I downloaded the pre-trained model from the git hub they give, and run the script with the parameters Pablo sent (script_nucleus_segmentation.groovy). 
+
+````{groovy}
+def stardist = StarDist2D.builder(modelPath)
+    .threshold(0.15)
+    .normalizePercentiles(0.1, 99.9)
+    .pixelSize(0.25)
+    .measureShape()
+    .measureIntensity()
+    .build()
+````
+
+Also, I cropped the image of the samples 7 and 8, with the script crop_tissue.py. 
+
+At the same time I did the alignment of the tiff image and the cytoassist of the samples 1 and 2.
+
+# Wednesday 14/10/2026
+
+The run of StarDist extension finished, but in my opinion, there were more detections than real nucleus in the image. So I tried modifying the parameters, the threshold, and the pixel size. 
+
+````{groovy}
+def stardist = StarDist2D
+    .builder(modelPath)
+    .normalizePercentiles(0.1, 99.9) // Percentile normalization
+    .threshold(0.3)              // Probability (detection) threshold
+    .pixelSize(0.5)              // Resolution for detection
+    .measureShape()              // Add shape measurements
+    .measureIntensity()          // Add nucleus measurements
+    .build()
+````	 
+
+This time, the run lasted 25 min, compared to the 5 hours of the last one. And the number of detections increased almost the double comparing to the results of SpaceRanger.
+
+**Num Detections	287311**
+
+Although the number is better, I think we can improve even more the detections. There are still nucleus that StarDist is not capturing 
+
+````{groovy}
+def stardist = StarDist2D
+    .builder(modelPath)
+    .normalizePercentiles(0.1, 99.9) // Percentile normalization
+    .threshold(0.25)              // Probability (detection) threshold
+    .pixelSize(0.5)              // Resolution for detection
+    .measureShape()              // Add shape measurements
+    .measureIntensity()          // Add nucleus measurements
+    .build()
+````
+
+It finished in 25 minutes too, and the total number of detections is: 
+**Num Detections	330585**
+
+Now, I'm going to launch SpaceRanger with custom segmentations to see the metrics of both geojson. The first hypothesis is than we would have improved de UMIs in cells a 40% (from 43% to aprox. 80%). And in the second, if the improvement is not notorious, the the major detections would be noise. 
+
+````{bash}
+sbatch -o log_TMA_3_4_SD_1.txt -e error_TMA_3_4_SD_1.txt -J TMA_3_4_SD_1 -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_3_4_SD_1 --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/fastq_3_4 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/cytassist_image.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/H1-C692N9D-D1-fiducials-image-registration.json --create-bam=false --custom-segmentation-file=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean_crop_clean.geojson --nucleus-expansion-distance-micron=8"
+````
+
+````{bash}
+sbatch -o log_TMA_3_4_SD_2.txt -e error_TMA_3_4_SD_2.txt -J TMA_3_4_SD_2 -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_3_4_SD_2 --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/fastq_3_4 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/cytassist_image.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/H1-C692N9D-D1-fiducials-image-registration.json --create-bam=false --custom-segmentation-file=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean_crop_2_clean.geojson --nucleus-expansion-distance-micron=8"
+````
+
+
+First, we converted the image sinto pyramidal, by downloading the images from QuPath (it does the conversion automaticly). Then I cleaned the geojson generated with StarDist by modifying the script clean_geojson.py (the paths): 
+````{bash}
+sed -i 's/crop/crop_2/' clean_geojson.py
+````
+
+Then, we tried to launch a SpaceRanger run in the cloud, but it failed due to diferences in the original image and the used to do the fiducial alignment (I used the same, so I don't know what could happen). So, now I'm going to perform the same analysis but in the terminal.
+
+First we looked for the remaining space in the project with the command: 
+````{bash}
+quotr quota list
+````
++-----+--------------+----------+-----------+------------+---------+---------------+--------+-------------+--------+
+|  id | project_name | req_user | req_group |  end_date  |   type  |     usage     | quota  |    files    | limit  |
++-----+--------------+----------+-----------+------------+---------+---------------+--------+-------------+--------+
+| 338 | BLCA_Spatial | lsantos  |     ce    | 2027-06-30 | project | 88.79 GB (9%) |  1 TB  | 64944 (65%) | 100000 |
+| 337 |   lsantos    | lsantos  |     ce    |    None    |   user  | 31.25 GB (6%) | 500 GB | 33458 (33%) | 100000 |
++-----+--------------+----------+-----------+------------+---------+---------------+--------+-------------+--------+
+
+As there were enough space, Jaime uploaded the fastq of the samples TMA_1_2 and the I executed:
+````{bash}
+sbatch -o log_TMA_1_2.txt -e error_TMA_1_2.txt -J TMA_1_2_AL-7332_99-6323-3_1_BOO-2657-12_2 -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_1_2_AL-7332_99-6323-3_1_BOO-2657-12_2 --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_1_2/fastq_1_2 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_1_2/TMA_1-2_cytoassist.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_1_2/AL-7332_99-6323-3_1_BOO-2657-12_2.ome.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_1_2/H1-C692N9D-A1-fiducials-image-registration.json --create-bam=false"
+````
+The project name has te image name included to run the crop_tissue script for all the images at the same time (this name is a requirement).
+
+Now, I'm going to convert the rest of the images in pyramidal, to do the fiducial alignment with them. 
+
+# Thursday 15/10/2026
+
+All the jobs finished, but in the case of TMA_3_4 with the custom alignments, the image and the fiducial alignments were from the complete image. Also, there was a problem with the cluster, the big square was showed as an object, and SR asigned to it a cluster. To solve this, I reloaded the mask in QuPath, removed this square and with the selector I draw all the sample, selecting all te polygons corresponding to nucleus. 
+Finally, I launched again the jobs but with the correct files
+
+````{bash}
+sbatch -o log_TMA_3_4_SD_1.txt -e error_TMA_3_4_SD_1.txt -J TMA_3_4_SD_1 -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_3_4_SD_1 --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/fastq_3_4 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/cytassist_image.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean_crop.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/H1-C692N9D-D1-fiducials-crop-image-registration.json --create-bam=false --custom-segmentation-file=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean_crop1_clean.geojson  --nucleus-expansion-distance-micron=8"
+````
+
+````{bash}
+sbatch -o log_TMA_3_4_SD_2.txt -e error_TMA_3_4_SD_2.txt -J TMA_3_4_SD_2 -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_3_4_SD_2 --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/fastq_3_4 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/cytassist_image.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean_crop.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/H1-C692N9D-D1-fiducials-crop-image-registration.json --create-bam=false --custom-segmentation-file=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean_crop2_clean.geojson --nucleus-expansion-distance-micron=8"
+````
+
+The TMA_1_2 run did not failed, but there was a problem with the image (pixel of 0,79), so I redownloaded the image from QuPath to convert it into pyramidal and do again the alignment.
+````{bash}
+sbatch -o log_TMA_1_2.txt -e error_TMA_1_2.txt -J TMA_1_2_AL-7332_99-6323-3_1_BOO-2657-12_2 -c 2 --mem=50G -t1440 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger count --id=TMA_1_2_AL-7332_99-6323-3_1_BOO-2657-12_2 --transcriptome=/storage/scratch01/users/lsantos/SpaceRanger_TMA/refdata-gex-GRCh38-2024-A --fastqs=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_1_2/fastq_1_2 --probe-set=/storage/scratch01/users/lsantos/SpaceRanger_TMA/Visium_Human_Transcriptome_Probe_Set_v2.1.0_GRCh38-2024-A.csv --cytaimage=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_1_2/TMA_1-2_cytoassist.tiff --image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_1_2/AL-7332_99-6323-3_1_BOO-2657-12_2.ome.tif --loupe-alignment=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_1_2/H1-C692N9D-A1-fiducials-image-registration.json --create-bam=false"
+````
+
+
+# Friday 16/10/2026
+
+Review the results of the SpaceRanger runs. SD1 and SD2 went well, 77% and 80% of UMIs in cells. However, the TMA_1_2 failed again, it only captures a 1 or 2% of UMIs in cells, and the warning message about the pixel quality appeared again. 
+
+I also, submitted again Cellpose but with the cropped image. 
+

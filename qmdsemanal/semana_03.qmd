@@ -1,0 +1,158 @@
+---
+title: "3rd Week 28 - 2 september/october "
+number-sections: false
+format: html
+engine: markdown
+---
+
+# Monday 28/09/2026
+
+All SR jobs ended correctly. 
+The results of the custom segmentation using CellVit++ GeoJson obtained low metrics, a 38% aprox. of total umis. Also, the output wasn't as expected, there wasn't the nucleus_mask.tiff. That's the reason to submit another job but this time with the segment option:
+
+````{bash}
+sbatch -o log_TMA_3_4_smurf_segment.txt -e error_TMA_3_4_smurf_segment.txt -J TMA_3_4_smurf_segment -c 2 --mem=20G -t120 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger segment --id=TMA_3_4_smurf_segment --tissue-image=/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean.tif --max-nucleus-diameter-px=1024"
+````
+With segment option we finally obtained the output .tiif
+
+Knowing that, I started with SMURF. I submitted an srun, the conda actiate smurf, and called python to start proving the script line by line. 
+First I charged the so object with: 
+
+````{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import scanpy as sc
+import anndata
+
+import smurf as su
+
+import pickle
+import copy
+import gzip
+
+import os
+
+data_path = '/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/TMA_3_4_SRtest/'
+save_path = '/storage/scratch01/groups/ce/BLCA_Spatial/SMURF/TMA_3_4_s/'
+
+# Check if the directory exists
+
+if not os.path.exists(save_path):
+    os.makedirs(save_path)
+    
+# First step to build so (spatial object)
+
+so_3_4 = su.prepare_dataframe_image(data_path+'outs/binned_outputs/square_002um/spatial/tissue_positions.parquet',
+                                    '/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/AL-7332_99B-15848-3D_3_97-47941S_4_clean.tif')
+
+""" Called an srun with gpu to see this
+plt.imshow(so_3_4.image_temp())
+plt.show()
+plt.close()
+"""
+#save the image generated to segment with Space Ranger
+with gzip.GzipFile(save_path + 'image_to_segmentation.npy.gz', 'w') as f:
+    np.save(f, so_3_4.image_temp())
+````
+Finally I obtained an image.npy that I used as input to Space Ranger segment to get the final segementation image. 
+
+````{bash}
+sbatch -o log_TMA_3_4_smurf_final_segment.txt -e error_TMA_3_4_smurf_final_segment.txt -J TMA_3_4_smurf_final_segment -c 2 --mem=20G -t120 --wrap="/storage/scratch01/users/lsantos/SpaceRanger_TMA/spaceranger-4.1.0/spaceranger segment --id=TMA_3_4_smurf_final_segment --tissue-image=/storage/scratch01/groups/ce/BLCA_Spatial/SMURF/TMA_3_4_s/image_to_segmentation.tiff --max-nucleus-diameter-px=1024"
+````
+
+I'm having problems with the final so object, because of the dims. SR segment does not accept as input a .npy matrix, just .tiff, .jpg, etc. So I'm trying to get the coordinates of the tissue.parquet (binned output) to cut the mask.tiff used with the whole original image. 
+
+Finally I solved this converting the output of the image to segment in .tiff not .npy, this was then the argument of Space Ranger segment. 
+
+# Tuesday 29/29/2026
+
+Everything worked, SR gave as output a .tiff mask and I converted it into .npy 
+
+All the morning I was running the test_smurf.py script until the itering arragement that couldn't finish due to 'out of time'. The next day I want to try it again with an sbatch and save an object after that. 
+
+Today I couldn't get a gpu srun neither. 
+
+# Wednesday 30/09/2026
+
+Finally run an sbatch, concretly:
+
+````{bash}
+sbatch smurf_exe.sh
+````
+
+with smurf_exe.sh:
+
+````{bash}
+#!/bin/bash
+#SBATCH --job-name=test_smurf
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=50G
+#SBATCH --time=24:00:00
+#SBATCH --output=log_test_smurf.txt
+#SBATCH --error=err_test_smurf.txt
+
+source /home/lsantos/miniforge3/etc/profile.d/conda.sh
+
+conda activate smurf
+
+cd /storage/scratch01/groups/ce/BLCA_Spatial/SMURF
+
+python smurf_part1.py
+````
+
+The smurf_part1.py is to complete the iteration part: 
+
+````{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import scanpy as sc
+import anndata
+import smurf as su
+import pickle
+import copy
+import gzip
+import os
+import tifffile as tiff
+
+data_path = '/storage/scratch01/groups/ce/BLCA_Spatial/TMA_3_4/TMA_3_4_SRtest/'
+save_path = '/storage/scratch01/groups/ce/BLCA_Spatial/SMURF/TMA_3_4_s/'
+
+with open(save_path + 'so_3_4.pkl', 'rb') as file:
+    so_3_4 = pickle.load(file)
+
+adata = sc.read_10x_mtx(data_path +'/outs/binned_outputs/square_002um/filtered_feature_bc_matrix')
+adata = copy.deepcopy(adata[so_3_4.df[so_3_4.df.in_tissue == 1]['barcode']])
+adata.obs    
+
+sc.pp.filter_genes(adata, min_counts=1000)
+
+su.nuclei_rna(adata,so_3_4)
+adata_sc = copy.deepcopy(so_3_4.final_nuclei)
+adata_sc
+
+sc.pp.filter_cells(adata_sc, min_counts=5) 
+adata_raw = copy.deepcopy(adata_sc)
+adata_raw
+
+adata_sc = su.singlecellanalysis(adata_sc,resolution=1) #estaba en 2, pero lo bajo para hacer una prueba inicial
+
+su.itering_arragement(adata_sc, adata_raw, adata, so_3_4, resolution=1, save_folder = save_path, show = True, keep_previous = False)
+
+# adatas_final = sc.read_h5ad(save_path +'adatas.h5ad')
+
+# with open(save_path +'cells_final.pkl', 'rb') as file:
+#    cells_final = pickle.load(file)
+
+# with open(save_path +'weights_record.pkl', 'rb') as file:
+#    weights_record = pickle.load(file)
+````
+
+# Friday 02/10/2026
+
+The sbatch (part1) didn't finish, due to memory error. I runned it again with more memory and finished correctly. 
+The part2 didn't finish also, due to a CUDA error. The version of CUDA is 13, but the needed was 12, so I created a new conda environment with the correct version of CUDA and installed smurf.
+
+

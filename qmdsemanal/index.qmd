@@ -1,0 +1,6 @@
+# Detalles del Proyecto {.unnumbered}
+
+* **Título:**  Desarrollo y optimización de herramientas de segmentación
+celular para anotación en transcriptómica espacial de alta resolución. 
+* **Autora:** Lucía Santos Muñoz
+
