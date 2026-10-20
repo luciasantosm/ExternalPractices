@@ -102,7 +102,7 @@ Notes:
 
 ### 3.4. [SMURF](https://github.com/The-Mitra-Lab/SMURF#smurf-full)
 
-<!-- TODO: add the usage diagram and links to the scripts -->
+![Cellpose workflow](/pictures/workflow_smurf.png/)
 
 SMURF takes a nuclei segmentation that was already generated (here, the nuclei mask produced by Space Ranger segment) together with the 2 µm bin data, and builds a **soft segmentation of the cells**: the counts of the spots that overlap several cells are distributed among them.
 
