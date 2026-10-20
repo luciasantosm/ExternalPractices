@@ -118,24 +118,7 @@ Main steps:
 
 #### Diagram
 
-```mermaid
-flowchart TD
-    A["1. Pyramidal image<br/>QuPath → OME-TIFF"] --> B["2. Alignment<br/>Loupe Browser: image + CytAssist"]
-    B --> C["3. Space Ranger<br/>max-diameter: 1024 px"]
-    C --> D["4. Download .parquet<br/>tissue_position"]
-    D --> E["5. crop-tissue.py"]
-    A -. "OME-TIFF" .-> E
-    E --> F["crop-image"]
-    F --> G["6. Alignment<br/>Loupe Browser: crop + CytAssist"]
-    F --> H["7. StarDist in QuPath"]
-    H --> I["8. Save polygons<br/>FeatureCollection GeoJSON"]
-    I --> J["9. clean-geojson.py"]
-    G --> K["10. Space Ranger<br/>--custom-segmentation-file"]
-    J --> K
-    F -.-> K
-```
-
-Original hand-drawn sketch (annotated in Spanish):
+Original hand-drawn sketch:
 
 ![Hand-drawn workflow sketch](/pictures/workflow_qupath_spaceranger_segmentacion_custom.png/)
 
