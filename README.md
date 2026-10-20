@@ -86,7 +86,7 @@ With this segmentation, metrics such as **UMIs in cells** decreased compared to 
 
 ### 3.3. [Cellpose](https://github.com/MouseLand/cellpose)
 
-<!-- TODO: add the usage diagram and links to the scripts -->
+![Cellpose workflow](/pictures/workflow_cellpose.png/)
 
 Nuclei are segmented with Cellpose on the GPU, using the first three channels of the H&E image. Parameters used:
 
