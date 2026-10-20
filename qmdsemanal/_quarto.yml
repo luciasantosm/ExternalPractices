@@ -1,19 +1,20 @@
 project:
-  type: book
+  type: website
 
-book:
+author: "Lucía Santos Muñoz"
+
+website:
   title: "Practices Diary"
-  author: "Lucía Santos Muñoz"
-  chapters:
-    - index.qmd
-    - semana_01.qmd
-    - semana_02.qmd
-    - semana_03.qmd
-    - semana_04.qmd 
-    - semana_05.qmd
-    - semana06.qmd
-    
-
+  sidebar:
+    style: docked
+    contents:
+      - index.qmd
+      - semana_01.qmd
+      - semana_02.qmd
+      - semana_03.qmd
+      - semana_04.qmd
+      - semana_05.qmd
+      - semana_06.qmd
 
 format:
   html:
