@@ -20,7 +20,7 @@ The aim is to reach a **consensus on the best possible result**, taking into acc
 | **Loupe Browser** | Manual alignment of the H&E image with the CytAssist image |
 | **Space Ranger** | Processing of the spatial data |
 | **StarDist** | Nuclei segmentation (tool under evaluation) |
-| **Python scripts** (`crop-tissue.py`, `clean-geojson.py`) | Image cropping and GeoJSON cleaning |
+| **Python scripts** ([`crop_tissue.py`](/scripts/crop_tissue.py), [`clean_geojson.py`](/scripts/clean_geojson.py)) | Image cropping and GeoJSON cleaning |
 | **Cellpose** | Nuclei segmentation (tool under evaluation) |
 | **SMURF** | Cell soft segmentation (tool under evaluation) |
 | **CellViT++** | Nuclei segmentation |
@@ -78,7 +78,7 @@ On the cluster it is launched through `sbatch` (`--wrap`), with 2 cores, 50 GB o
 
 To test CellViT++ we used a Geojson that had already been generated, but it had to be processed to meet the input requirements of Space Ranger. The file must be a `FeatureCollection` made of **polygons**, whereas the CellViT++ mask was segmented as **points and multipoints**.
 
-The fix is to load the mask in QuPath and export it as objects in `FeatureCollection` format. This `.geojson` is then cleaned with `clean-geojson.py`.
+The fix is to load the mask in QuPath and export it as objects in `FeatureCollection` format. This `.geojson` is then cleaned with [`clean_geojson.py`](/scripts/clean_geojson.py).
 
 <!-- TODO: add the link to clean-geojson.py -->
 
@@ -135,11 +135,11 @@ The same workflow applies to the other tools: only step 7 (the segmentation) cha
 
 **Phase 2: cropping and custom segmentation**
 
-5. **Cropping with `crop-tissue.py`.** The script uses the `.parquet` file with the tissue positions and the OME-TIFF image from step 1 to generate the cropped image (`crop-image`).
+5. **Cropping with [`crop_tissue.py`](/scripts/crop_tissue.py).** The script uses the `.parquet` file with the tissue positions and the OME-TIFF image from step 1 to generate the cropped image.
 6. **New alignment in Loupe Browser.** The cropped image is aligned with CytAssist. This alignment is used in the final run.
 7. **Segmentation with StarDist in QuPath.** It is applied to the cropped image.
 8. **Polygon export.** The segmented objects are saved as **GeoJSON** (`FeatureCollection`).
-9. **Cleaning with `clean-geojson.py`.** The GeoJSON is processed so that it has a valid format for Space Ranger.
+9. **Cleaning with [`clean_geojson.py`](/scripts/clean_geojson.py).** The GeoJSON is processed so that it has a valid format for Space Ranger.
 10. **Space Ranger with custom segmentation.** It is run with `--custom-segmentation-file`, combining the alignment from step 6, the cropped image and the cleaned GeoJSON from step 9.
 
 ## 4. Repository structure
