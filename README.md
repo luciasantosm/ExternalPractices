@@ -95,10 +95,7 @@ Nuclei are segmented with Cellpose on the GPU, using the first three channels of
 - `tile_norm_blocksize = 0`
 - `batch_size = 32`
 
-Notes:
-
-- With this image, Cellpose returned more than 65535 masks.
-- Executing right now
+The script executed is [`Run_Cellpose.py`](/scripts/Run_Cellpose.py)
 
 ### 3.4. [SMURF](https://github.com/The-Mitra-Lab/SMURF#smurf-full)
 
@@ -147,11 +144,12 @@ The same workflow applies to the other tools: only step 7 (the segmentation) cha
 ```
 .
 ├── README.md
-├── docs/
-│   └── esquema_workflow.jpeg
+├── pictures/
+│   └── workflow_tool.png
 ├── scripts/
-│   ├── crop-tissue.py
-│   └── clean-geojson.py
+│   ├── crop_tissue.py
+│   └── clean_geojson.py
+|   └── Run_Cellpose.py
 └── ...
 ```
 
