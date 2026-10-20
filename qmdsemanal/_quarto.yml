@@ -2,7 +2,7 @@ project:
   type: book
 
 book:
-  title: "Diario Prácticas"
+  title: "Practices Diary"
   author: "Lucía Santos Muñoz"
   chapters:
     - index.qmd
