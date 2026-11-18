@@ -137,10 +137,10 @@ The same workflow applies to the other tools: only step 7 (the segmentation) cha
 **Phase 2: cropping and custom segmentation**
 ![crop-image workflow](/pictures/workflow_crop_image.png/)
 6. **New alignment in Loupe Browser.** The cropped image is aligned with CytAssist. This alignment is used in the final run.
-7. **Segmentation with StarDist in QuPath.** It is applied to the cropped image.
-8. **Polygon export.** The segmented objects are saved as **GeoJSON** (`FeatureCollection`).
-9. **Cleaning with [`clean_geojson.py`](/scripts/clean_geojson.py).** The GeoJSON is processed so that it has a valid format for Space Ranger.
-10. **Space Ranger with custom segmentation.** It is run with `--custom-segmentation-file`, combining the alignment from step 6, the cropped image and the cleaned GeoJSON from step 9.
+7.  **Segmentation with StarDist in QuPath.** It is applied to the cropped image.
+8.  **Polygon export.** The segmented objects are saved as **GeoJSON** (`FeatureCollection`).
+9.  **Cleaning with [`clean_geojson.py`](/scripts/clean_geojson.py).** The GeoJSON is processed so that it has a valid format for Space Ranger.
+10.  **Space Ranger with custom segmentation.** It is run with `--custom-segmentation-file`, combining the alignment from step 6, the cropped image and the cleaned GeoJSON from step 9.
 
 ## 4. Repository structure
 
