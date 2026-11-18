@@ -135,7 +135,7 @@ The same workflow applies to the other tools: only step 7 (the segmentation) cha
 5. **Cropping with [`crop_tissue.py`](/scripts/crop_tissue.py).** The script uses the `.parquet` file with the tissue positions and the OME-TIFF image from step 1 to generate the cropped image.
 
 **Phase 2: cropping and custom segmentation**
-![crop-image workflow](/pictures/workflow_crop_image.png/)
+
 6. **New alignment in Loupe Browser.** The cropped image is aligned with CytAssist. This alignment is used in the final run.
 7.  **Segmentation with StarDist in QuPath.** It is applied to the cropped image.
 8.  **Polygon export.** The segmented objects are saved as **GeoJSON** (`FeatureCollection`).
