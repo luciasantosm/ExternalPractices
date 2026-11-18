@@ -14,7 +14,7 @@ website:
       - semana_03.qmd
       - semana_04.qmd
       - semana_05.qmd
-      - semana_06.qmd
+      - semana06.qmd
 
 format:
   html:

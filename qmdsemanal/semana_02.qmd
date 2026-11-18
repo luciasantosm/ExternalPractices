@@ -370,7 +370,7 @@ JOB IDs:
 No gui, so I installed the normal version of cellpose. 
 
 ````{bash}
-srun -p gpu --nodes=1 --ntasks-per-node=1 -c 4 --mem=50G --time=02:00:00 --gres=gpu:A100:1 --pty bash -i
+srun -p gpu --nodes=1 --ntasks-per-node=1 -c 4 --mem=30G --time=02:00:00 --gres=gpu:A100:1 --pty bash -i
 ````
 
 I think I will have to run Run_Cellpose.py (*/storage/scratch01/users/lsantos/Cellpose_TMA*) because there are no resources to run the srun with gpu
