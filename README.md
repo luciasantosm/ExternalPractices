@@ -77,6 +77,8 @@ On the cluster it is launched through `sbatch` (`--wrap`), with 2 cores, 50 GB o
 
 ### 3.2. [CellViT++](https://github.com/TIO-IKIM/CellViT) - custom segmentation in Space Ranger
 
+![CellVit++ workflow](/pictures/workflow_cellvit.png/)
+
 To test CellViT++ we used a Geojson that had already been generated, but it had to be processed to meet the input requirements of Space Ranger. The file must be a `FeatureCollection` made of **polygons**, whereas the CellViT++ mask was segmented as **points and multipoints**.
 
 The fix is to load the mask in QuPath and export it as objects in `FeatureCollection` format. This `.geojson` is then cleaned with [`clean_geojson.py`](/scripts/clean_geojson.py).
