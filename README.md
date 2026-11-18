@@ -127,15 +127,15 @@ The same workflow applies to the other tools: only step 7 (the segmentation) cha
 #### Step-by-step explanation
 
 **Phase 1: full image and tissue detection**
-
+![crop-image workflow](/pictures/workflow_crop_image.png/)
 1. **Pyramidal image with QuPath.** The tissue photo is converted to a pyramidal format and exported as **OME-TIFF** (*Export images → OME-TIFF*). This image is reused later in the cropping step.
 2. **Initial alignment in Loupe Browser.** The image is aligned with the **CytAssist** image.
 3. **First Space Ranger run.** It is launched with `max-diameter: 1024 px`. The *web summary* is then reviewed to check that the output is correct.
 4. **Download the `.parquet` file.** The file with the tissue positions (`tissue_position`) is downloaded from the Space Ranger output.
+5. **Cropping with [`crop_tissue.py`](/scripts/crop_tissue.py).** The script uses the `.parquet` file with the tissue positions and the OME-TIFF image from step 1 to generate the cropped image.
 
 **Phase 2: cropping and custom segmentation**
-
-5. **Cropping with [`crop_tissue.py`](/scripts/crop_tissue.py).** The script uses the `.parquet` file with the tissue positions and the OME-TIFF image from step 1 to generate the cropped image.
+![crop-image workflow](/pictures/workflow_crop_image.png/)
 6. **New alignment in Loupe Browser.** The cropped image is aligned with CytAssist. This alignment is used in the final run.
 7. **Segmentation with StarDist in QuPath.** It is applied to the cropped image.
 8. **Polygon export.** The segmented objects are saved as **GeoJSON** (`FeatureCollection`).
