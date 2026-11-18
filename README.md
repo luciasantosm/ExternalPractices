@@ -19,7 +19,7 @@ The aim is to reach a **consensus on the best possible result**, taking into acc
 | **QuPath** | Visualization of the images, conversion to pyramidal image (OME-TIFF) and segmentation with StarDist |
 | **Loupe Browser** | Manual alignment of the H&E image with the CytAssist image |
 | **Space Ranger** | Processing of the spatial data and cell segmentation |
-| **Python scripts** ([`crop_tissue.py`](/scripts/crop_tissue.py), [`clean_geojson.py`](/scripts/clean_geojson.py)), [`stain_norm.py](/scripts/stain_norm.py) | Image cropping, GeoJSON cleaning and stain normalization |
+| **Python scripts** ([`crop_tissue.py`](/scripts/crop_tissue.py), [`clean_geojson.py`](/scripts/clean_geojson.py)), [`stain_norm.py`](/scripts/stain_norm.py) | Image cropping, GeoJSON cleaning and stain normalization |
 | **StarDist** | Nuclei segmentation - QuPath Extension |
 | **Cellpose** | Nuclei segmentation |
 | **SMURF** | Cell soft segmentation |
