@@ -2,7 +2,7 @@
 
 > Repository for my internship project. The goal is to **benchmark several tools** within a single spatial transcriptomics workflow, using histology images aligned with **CytAssist** images and processed with **Space Ranger**.
 
-<!-- Author: Lucía Santos Muñoz, Institution: Centro Nacional de Investigaciones Oncológicas (CNIO) -->
+<!-- Author: Lucía Santos Muñoz, Institution: Centro Nacional de Investigaciones Oncológicas (CNIO) and Universidad Autónoma de Madrid (UAM) -->
 
 ---
 
@@ -18,12 +18,13 @@ The aim is to reach a **consensus on the best possible result**, taking into acc
 |---|---|
 | **QuPath** | Visualization of the images, conversion to pyramidal image (OME-TIFF) and segmentation with StarDist |
 | **Loupe Browser** | Manual alignment of the H&E image with the CytAssist image |
-| **Space Ranger** | Processing of the spatial data |
-| **StarDist** | Nuclei segmentation (tool under evaluation) |
-| **Python scripts** ([`crop_tissue.py`](/scripts/crop_tissue.py), [`clean_geojson.py`](/scripts/clean_geojson.py)) | Image cropping and GeoJSON cleaning |
-| **Cellpose** | Nuclei segmentation (tool under evaluation) |
-| **SMURF** | Cell soft segmentation (tool under evaluation) |
+| **Space Ranger** | Processing of the spatial data and cell segmentation |
+| **Python scripts** ([`crop_tissue.py`](/scripts/crop_tissue.py), [`clean_geojson.py`](/scripts/clean_geojson.py)), [`stain_nomr_image.py](/scripts/stain_norm_image.py) | Image cropping, GeoJSON cleaning and stain normalization |
+| **StarDist** | Nuclei segmentation - QuPath Extension |
+| **Cellpose** | Nuclei segmentation |
+| **SMURF** | Cell soft segmentation |
 | **CellViT++** | Nuclei segmentation |
+| **InstanSeg** | Nuclei segmentation - QuPath Extension |
 
 ## 3. Workflows
 
